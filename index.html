@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>内灘町 公衆トイレマップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Leaflet CSS -->
+  <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css"
+    integrity="sha512-sA+vqk0W7epXqLo+NmvMsDcumHZ0oQ/O6+k+X4z0PAU4RW5FRqNbpX/hfa7R3XIWiROHsEdn7YkiLIK48bELYQ==" 
+    crossorigin="anonymous" 
+    referrerpolicy="no-referrer" 
+  />
+  <style>
+    body { margin: 0; padding: 0; }
+    #map { width: 100vw; height: 100vh; }
+    h1 {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      font-size: 20px;
+      margin: 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>内灘町 公衆トイレマップ</h1>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script 
+    src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"
+    integrity="sha512-M8RnYBwp0UWjsXEzXb0BDOLZY0+CDXaZIBOIMdzO1Xj9MG3gz/nNMDDKhEObfRyC37OISPtGB6buD3K6Mbzjxw=="
+    crossorigin="anonymous" 
+    referrerpolicy="no-referrer"></script>
+  
+  <script>
+    // 地図の中心座標（度）
+    // 北緯36度39分38.10秒 = 36 + 39/60 + 38.1/3600 = 36.6605833
+    // 東経136度39分03秒 = 136 + 39/60 + 3/3600 = 136.6508333
+    const centerLat = 36.6605833;
+    const centerLng = 136.6508333;
+
+    // 地図初期化
+    const map = L.map('map').setView([centerLat, centerLng], 14);
+
+    // OpenStreetMapタイルレイヤー
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    // トイレデータ：添付CSVから抜粋・加工した例（緯度経度はCSVの緯度経度を利用）
+    // 表示は「名称」 + 簡単なトイレの数情報を表示
+    const toilets = [
+      {
+        name: "向粟崎都市緑地",
+        lat: 36.63076,
+        lng: 136.62907,
+        details: "男性トイレ総数: 0, 女性トイレ総数: 0, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 無"
+      },
+      {
+        name: "はまちどり公園",
+        lat: 36.638697,
+        lng: 136.625597,
+        details: "男性トイレ総数: 3, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "鶴ケ丘中央公園",
+        lat: 36.645422,
+        lng: 136.639569,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "ハマナス恐竜公園",
+        lat: 36.655838,
+        lng: 136.64401,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 3, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "大根布児童公園",
+        lat: 36.650281,
+        lng: 136.64511,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 2, 男女共用トイレ総数: 0, 車椅子使用者用トイレ: 無"
+      },
+      {
+        name: "蓮湖渚公園",
+        lat: 36.656431,
+        lng: 136.653814,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 3, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "宮坂ふれあい広場",
+        lat: 36.667176,
+        lng: 136.660122,
+        details: "男性トイレ総数: 1, 女性トイレ総数: 0, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 無"
+      },
+      {
+        name: "内灘町総合公園（パークゴルフ場）",
+        lat: 36.662993,
+        lng: 136.652504,
+        details: "男性トイレ総数: 6, 女性トイレ総数: 4, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "内灘町総合公園（テニスコート）",
+        lat: 36.664393,
+        lng: 136.653757,
+        details: "男性トイレ総数: 6, 女性トイレ総数: 3, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "白帆台第3公園",
+        lat: 36.673357,
+        lng: 136.658322,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "白帆台第4公園",
+        lat: 36.676496,
+        lng: 136.661243,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "室児童公園",
+        lat: 36.686315,
+        lng: 136.673319,
+        details: "男性トイレ総数: 0, 女性トイレ総数: 0, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 無"
+      },
+      {
+        name: "内灘町霊園",
+        lat: 36.67634,
+        lng: 136.65635,
+        details: "男性トイレ総数: 3, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "内灘駅",
+        lat: 36.633524,
+        lng: 136.633933,
+        details: "男性トイレ総数: 3, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "河北潟放水路",
+        lat: 36.66471,
+        lng: 136.64312,
+        details: "男性トイレ総数: 2, 女性トイレ総数: 1, 男女共用トイレ総数: 0, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "内灘海水浴場",
+        lat: 36.64045,
+        lng: 136.62397,
+        details: "男性トイレ総数: 4, 女性トイレ総数: 3, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      },
+      {
+        name: "道の駅内灘サンセットパーク",
+        lat: 36.659151,
+        lng: 136.648919,
+        details: "男性トイレ総数: 3, 女性トイレ総数: 2, 男女共用トイレ総数: 1, 車椅子使用者用トイレ: 有"
+      }
+    ];
+
+    // マーカーを追加
+    toilets.forEach(function(toilet) {
+      const marker = L.marker([toilet.lat, toilet.lng]).addTo(map);
+      marker.bindPopup(`<b>${toilet.name}</b><br>${toilet.details}`);
+    });
+  </script>
+</body>
+</html>
